@@ -20,7 +20,7 @@ conversations = {}
 VERIFY_TOKEN = "meutoken123"
 
 WHATSAPP_API_URL = "https://graph.facebook.com/v18.0/598348203371773/messages"
-WHATSAPP_TOKEN = "EAAOg3iog2D0BO7yuqhbTqQ8jH0tweujVUZBw9iGWpA..."  # Substitua pelo seu token real
+WHATSAPP_TOKEN = "EAAOg3iog2D0BO4I0TSD2xAfZAiZANGyGkmT1TIojp7vNl5RAFi7iCmCNJrkEkwQ1EkCYMVV3haj8W3ZAZC01rfBLw1wdqQgxi3IRxclGsvNzjEbhuz3aVjbLGMiZBMEi3RffcPharCUtNHot39OcJPBQ2nRL737KfLEedmlDxfJfQEhP0zcTzG87PMHDvnotgGOPrBWYPpf1mmjnMoXBhxKWsIEvm6HJvocIZD"
 
 async def enviar_mensagem_resposta(numero_destino: str, texto: str):
     headers = {
