@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
+import os
 
 app = FastAPI()
 
-# CORS para o frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://wppwebfront.vercel.app"],
@@ -16,13 +16,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Base em memória
 conversations = {}
-
-# Token de verificação da Meta
 VERIFY_TOKEN = "meutoken123"
 
-# Endpoint GET para validar o webhook da Meta
+WHATSAPP_API_URL = "https://graph.facebook.com/v18.0/598348203371773/messages"
+WHATSAPP_TOKEN = "EAAOg3iog2D0BO7yuqhbTqQ8jH0tweujVUZBw9iGWpA..."  # Substitua pelo seu token real
+
+async def enviar_mensagem_resposta(numero_destino: str, texto: str):
+    headers = {
+        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": numero_destino,
+        "type": "text",
+        "text": {"body": texto}
+    }
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(WHATSAPP_API_URL, json=payload, headers=headers)
+        print(f"Resposta enviada: {resp.status_code} | {resp.text}")
+
 @app.get("/webhook")
 def verify_webhook(
     hub_mode: str = Query(..., alias="hub.mode"),
@@ -33,10 +47,10 @@ def verify_webhook(
         return int(hub_challenge)
     return JSONResponse(status_code=403, content={"error": "Token inválido"})
 
-# Endpoint POST para receber mensagens reais da Meta
 @app.post("/webhook")
 async def receive_message(request: Request):
     body = await request.json()
+    print("Webhook recebido:", body)
     entry = body.get("entry", [])
     for e in entry:
         changes = e.get("changes", [])
@@ -56,25 +70,18 @@ async def receive_message(request: Request):
                         "history": conversations.get(user_id, {}).get("history", []) + [message_text]
                     }
 
-                    # Chamada a IA (exemplo com Perplexity ou outro modelo via API externa)
-                    try:
-                        async with httpx.AsyncClient() as client:
-                            response = await client.post("https://your-ai-api.com/ask", json={"question": message_text})
-                            ai_reply = response.json().get("answer", "Desculpe, não entendi.")
-                    except Exception:
-                        ai_reply = "Erro ao consultar a IA."
+                    # IA simulada
+                    ai_reply = f"Recebido: {message_text}. (resposta simulada)"
 
-                    # (Opcional) enviar resposta de volta usando a API da Meta aqui
-                    # ...
+                    # Enviar resposta automática
+                    await enviar_mensagem_resposta(user_id, ai_reply)
 
     return {"status": "received"}
 
-# Ver histórico das conversas
 @app.get("/status")
 def status():
     return {"conversations": conversations}
 
-# Página inicial
 @app.get("/")
 def home():
     return {"message": "FastAPI WhatsApp Webhook is running"}
